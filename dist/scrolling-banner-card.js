@@ -14,7 +14,7 @@ function g(c, t = "") {
 function f(c) {
   return typeof c == "string" && c.trim().length > 0;
 }
-class T extends HTMLElement {
+class C extends HTMLElement {
   constructor() {
     super(...arguments), this._needsMarquee = !1;
   }
@@ -42,13 +42,12 @@ class T extends HTMLElement {
   static getStubConfig() {
     return {
       type: "custom:scrolling-banner-card",
+      title: "Scrolling Banner Card",
       speed: 40,
       pause_on_hover: !0,
-      divider: !0,
-      entities: [
-        { entity_id: "sensor.time", label: "Time", icon: "mdi:clock-outline" },
-        { entity_id: "sensor.my_weather_station_temperature", label: "Outside", icon: "mdi:sun-thermometer-outline" }
-      ]
+      divider: !0
+      // No entities provided on purpose:
+      // the card will fall back to DEMO_ITEMS for the preview.
     };
   }
   connectedCallback() {
@@ -213,13 +212,13 @@ class T extends HTMLElement {
   _renderItemsHtml(t, r) {
     const e = r ? [...t, ...t] : t, i = !!this._config.divider, n = [];
     for (let s = 0; s < e.length; s++) {
-      const o = e[s], l = this._getLabel(o), { valueText: a, unitText: d } = this._getValue(o), p = this._getIcon(o), v = f(o.bg_color) ? o.bg_color : "rgba(255,255,255,0.06)", m = f(o.text_color) ? o.text_color : "", b = f(o.icon_color) ? o.icon_color : "", q = o.entity_id.startsWith("demo.") ? "" : `data-entity="${o.entity_id}" tabindex="0" role="button"`;
+      const o = e[s], l = this._getLabel(o), { valueText: a, unitText: d } = this._getValue(o), p = this._getIcon(o), v = f(o.bg_color) ? o.bg_color : "rgba(255,255,255,0.06)", b = f(o.text_color) ? o.text_color : "", m = f(o.icon_color) ? o.icon_color : "", q = o.entity_id.startsWith("demo.") ? "" : `data-entity="${o.entity_id}" tabindex="0" role="button"`;
       n.push(`
         <div class="pill"
           style="
             --sb-pill-bg: ${v};
-            ${m ? `--sb-pill-text:${m};` : ""}
-            ${b ? `--sb-pill-icon:${b};` : ""}
+            ${b ? `--sb-pill-text:${b};` : ""}
+            ${m ? `--sb-pill-icon:${m};` : ""}
           "
           ${q}
         >
@@ -278,7 +277,7 @@ class T extends HTMLElement {
   }
 }
 const k = "scrolling-banner-card";
-customElements.get(k) || customElements.define(k, T);
+customElements.get(k) || customElements.define(k, C);
 function h(c, t) {
   return Array.isArray(c) ? c : t;
 }
@@ -299,7 +298,7 @@ function _(c, t) {
   const r = c.trim();
   return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(r) ? r : t;
 }
-class C extends HTMLElement {
+class T extends HTMLElement {
   setConfig(t) {
     this._config = {
       type: "custom:scrolling-banner-card",
@@ -642,10 +641,10 @@ class C extends HTMLElement {
   }
 }
 const S = "scrolling-banner-card-editor";
-customElements.get(S) || customElements.define(S, C);
+customElements.get(S) || customElements.define(S, T);
 window.customCards.push({
   type: "custom:scrolling-banner-card",
   name: "Scrolling Banner Card",
   description: "A responsive scrolling banner showing entity states.",
-  preview: !1
+  preview: !0
 });

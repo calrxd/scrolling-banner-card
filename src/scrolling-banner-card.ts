@@ -101,18 +101,18 @@ class ScrollingBannerCard extends HTMLElement {
     return document.createElement("scrolling-banner-card-editor");
   }
 
-  static getStubConfig(): ScrollingBannerConfig {
-    return {
-      type: "custom:scrolling-banner-card",
-      speed: 40,
-      pause_on_hover: true,
-      divider: true,
-      entities: [
-        { entity_id: "sensor.time", label: "Time", icon: "mdi:clock-outline" },
-        { entity_id: "sensor.my_weather_station_temperature", label: "Outside", icon: "mdi:sun-thermometer-outline" },
-      ],
-    };
-  }
+static getStubConfig(): ScrollingBannerConfig {
+  return {
+    type: "custom:scrolling-banner-card",
+    title: "Scrolling Banner Card",
+    speed: 40,
+    pause_on_hover: true,
+    divider: true,
+    // No entities provided on purpose:
+    // the card will fall back to DEMO_ITEMS for the preview.
+  };
+}
+
 
   connectedCallback() {
     this._ensureRoot();
