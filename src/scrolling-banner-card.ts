@@ -68,29 +68,32 @@ class ScrollingBannerCard extends HTMLElement {
 
   private _needsMarquee = false;
 
-  setConfig(config: ScrollingBannerConfig) {
-    if (!config) throw new Error("Invalid configuration");
+  setConfig(config: Partial<ScrollingBannerConfig>) {
+  // The HA card picker/preview may call setConfig with an empty or partial config.
+  // Never throw here—apply defaults.
+  const cfg = (config ?? {}) as Partial<ScrollingBannerConfig>;
 
-    this._config = {
-      type: "custom:scrolling-banner-card",
-      title: config.title,
+  this._config = {
+    type: "custom:scrolling-banner-card",
+    title: cfg.title,
 
-      entities: Array.isArray(config.entities) ? config.entities : undefined,
+    entities: Array.isArray(cfg.entities) ? cfg.entities : undefined,
 
-      speed: typeof config.speed === "number" ? clamp(config.speed, 10, 300) : 40,
-      pause_on_hover: typeof config.pause_on_hover === "boolean" ? config.pause_on_hover : true,
-      divider: typeof config.divider === "boolean" ? config.divider : true,
+    speed: typeof cfg.speed === "number" ? clamp(cfg.speed, 10, 300) : 40,
+    pause_on_hover: typeof cfg.pause_on_hover === "boolean" ? cfg.pause_on_hover : true,
+    divider: typeof cfg.divider === "boolean" ? cfg.divider : true,
 
-      background: safeString(config.background, "transparent"),
-      text_color: safeString(config.text_color, "rgba(255,255,255,0.92)"),
-      divider_color: safeString(config.divider_color, "rgba(255,255,255,0.14)"),
+    background: safeString(cfg.background, "transparent"),
+    text_color: safeString(cfg.text_color, "rgba(255,255,255,0.92)"),
+    divider_color: safeString(cfg.divider_color, "rgba(255,255,255,0.14)"),
 
-      css: safeString(config.css, ""),
-    };
+    css: safeString(cfg.css, ""),
+  };
 
-    this._ensureRoot();
-    this._render();
-  }
+  this._ensureRoot();
+  this._render();
+}
+
 
   set hass(hass: Hass) {
     this._hass = hass;

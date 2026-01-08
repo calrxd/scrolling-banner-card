@@ -5,32 +5,32 @@ const y = [
   { entity_id: "demo.security", label: "Security", icon: "mdi:shield-outline" },
   { entity_id: "demo.network", label: "Network", icon: "mdi:wifi" }
 ];
-function x(c, t, r) {
-  return Math.max(t, Math.min(r, c));
+function x(l, t, i) {
+  return Math.max(t, Math.min(i, l));
 }
-function g(c, t = "") {
-  return typeof c == "string" ? c : t;
+function g(l, t = "") {
+  return typeof l == "string" ? l : t;
 }
-function f(c) {
-  return typeof c == "string" && c.trim().length > 0;
+function f(l) {
+  return typeof l == "string" && l.trim().length > 0;
 }
 class C extends HTMLElement {
   constructor() {
     super(...arguments), this._needsMarquee = !1;
   }
   setConfig(t) {
-    if (!t) throw new Error("Invalid configuration");
+    const i = t ?? {};
     this._config = {
       type: "custom:scrolling-banner-card",
-      title: t.title,
-      entities: Array.isArray(t.entities) ? t.entities : void 0,
-      speed: typeof t.speed == "number" ? x(t.speed, 10, 300) : 40,
-      pause_on_hover: typeof t.pause_on_hover == "boolean" ? t.pause_on_hover : !0,
-      divider: typeof t.divider == "boolean" ? t.divider : !0,
-      background: g(t.background, "transparent"),
-      text_color: g(t.text_color, "rgba(255,255,255,0.92)"),
-      divider_color: g(t.divider_color, "rgba(255,255,255,0.14)"),
-      css: g(t.css, "")
+      title: i.title,
+      entities: Array.isArray(i.entities) ? i.entities : void 0,
+      speed: typeof i.speed == "number" ? x(i.speed, 10, 300) : 40,
+      pause_on_hover: typeof i.pause_on_hover == "boolean" ? i.pause_on_hover : !0,
+      divider: typeof i.divider == "boolean" ? i.divider : !0,
+      background: g(i.background, "transparent"),
+      text_color: g(i.text_color, "rgba(255,255,255,0.92)"),
+      divider_color: g(i.divider_color, "rgba(255,255,255,0.14)"),
+      css: g(i.css, "")
     }, this._ensureRoot(), this._render();
   }
   set hass(t) {
@@ -61,8 +61,8 @@ class C extends HTMLElement {
     this._root = this.attachShadow({ mode: "open" });
     const t = document.createElement("style");
     t.textContent = this._baseCss(), this._root.appendChild(t);
-    const r = document.createElement("div");
-    r.className = "card", r.innerHTML = `
+    const i = document.createElement("div");
+    i.className = "card", i.innerHTML = `
       <div class="header" part="header">
         <div class="title" part="title"></div>
       </div>
@@ -72,7 +72,7 @@ class C extends HTMLElement {
       </div>
 
       <style class="user-css"></style>
-    `, this._root.appendChild(r);
+    `, this._root.appendChild(i);
     const e = this._root.querySelector(".viewport");
     this._resizeObs = new ResizeObserver(() => this._recalcMarquee()), this._resizeObs.observe(e);
   }
@@ -191,28 +191,28 @@ class C extends HTMLElement {
   }
   _render(t = !0) {
     if (!this._root || !this._config) return;
-    const r = this._root.querySelector(".card"), e = this._root.querySelector(".title"), i = this._root.querySelector(".header"), n = this._root.querySelector(".track"), s = this._root.querySelector(".user-css");
-    this._config.pause_on_hover ? this.classList.add("pause-on-hover") : this.classList.remove("pause-on-hover"), this._config.title && this._config.title.trim().length > 0 ? (i.style.display = "flex", e.textContent = this._config.title) : (i.style.display = "none", e.textContent = ""), r.style.setProperty("--sb-bg", this._config.background || "transparent"), r.style.setProperty("--sb-text", this._config.text_color || "rgba(255,255,255,0.92)"), r.style.setProperty("--sb-divider", this._config.divider_color || "rgba(255,255,255,0.14)"), s.textContent = this._config.css ? this._config.css : "";
+    const i = this._root.querySelector(".card"), e = this._root.querySelector(".title"), r = this._root.querySelector(".header"), n = this._root.querySelector(".track"), s = this._root.querySelector(".user-css");
+    this._config.pause_on_hover ? this.classList.add("pause-on-hover") : this.classList.remove("pause-on-hover"), this._config.title && this._config.title.trim().length > 0 ? (r.style.display = "flex", e.textContent = this._config.title) : (r.style.display = "none", e.textContent = ""), i.style.setProperty("--sb-bg", this._config.background || "transparent"), i.style.setProperty("--sb-text", this._config.text_color || "rgba(255,255,255,0.92)"), i.style.setProperty("--sb-divider", this._config.divider_color || "rgba(255,255,255,0.14)"), s.textContent = this._config.css ? this._config.css : "";
     const o = this._config.entities && this._config.entities.length > 0 ? this._config.entities : y;
     t ? (n.innerHTML = this._renderItemsHtml(o, !1), requestAnimationFrame(() => this._recalcMarquee(o))) : (n.innerHTML = this._renderItemsHtml(o, this._needsMarquee), requestAnimationFrame(() => this._recalcMarquee(o)));
   }
   _recalcMarquee(t) {
     if (!this._root || !this._config) return;
-    const r = this._root.querySelector(".viewport"), e = this._root.querySelector(".track"), i = t || (this._config.entities && this._config.entities.length > 0 ? this._config.entities : y);
+    const i = this._root.querySelector(".viewport"), e = this._root.querySelector(".track"), r = t || (this._config.entities && this._config.entities.length > 0 ? this._config.entities : y);
     if (!e.firstElementChild) return;
-    const n = e.getAttribute("data-duplicated") === "true", s = n ? e.scrollWidth / 2 : e.scrollWidth, o = r.clientWidth, l = s > o + 8;
-    if (this._needsMarquee = l, !l) {
-      n && (e.innerHTML = this._renderItemsHtml(i, !1), e.setAttribute("data-duplicated", "false")), e.classList.remove("marquee"), e.classList.add("centered"), e.style.removeProperty("--sb-shift"), e.style.removeProperty("--sb-duration");
+    const n = e.getAttribute("data-duplicated") === "true", s = n ? e.scrollWidth / 2 : e.scrollWidth, o = i.clientWidth, c = s > o + 8;
+    if (this._needsMarquee = c, !c) {
+      n && (e.innerHTML = this._renderItemsHtml(r, !1), e.setAttribute("data-duplicated", "false")), e.classList.remove("marquee"), e.classList.add("centered"), e.style.removeProperty("--sb-shift"), e.style.removeProperty("--sb-duration");
       return;
     }
-    n || (e.innerHTML = this._renderItemsHtml(i, !0), e.setAttribute("data-duplicated", "true"));
+    n || (e.innerHTML = this._renderItemsHtml(r, !0), e.setAttribute("data-duplicated", "true"));
     const a = e.scrollWidth / 2, d = typeof this._config.speed == "number" ? x(this._config.speed, 10, 300) : 40, p = Math.max(6, a / d);
     e.classList.add("marquee"), e.classList.remove("centered"), e.style.setProperty("--sb-shift", `${a}px`), e.style.setProperty("--sb-duration", `${p}s`);
   }
-  _renderItemsHtml(t, r) {
-    const e = r ? [...t, ...t] : t, i = !!this._config.divider, n = [];
+  _renderItemsHtml(t, i) {
+    const e = i ? [...t, ...t] : t, r = !!this._config.divider, n = [];
     for (let s = 0; s < e.length; s++) {
-      const o = e[s], l = this._getLabel(o), { valueText: a, unitText: d } = this._getValue(o), p = this._getIcon(o), v = f(o.bg_color) ? o.bg_color : "rgba(255,255,255,0.06)", b = f(o.text_color) ? o.text_color : "", m = f(o.icon_color) ? o.icon_color : "", q = o.entity_id.startsWith("demo.") ? "" : `data-entity="${o.entity_id}" tabindex="0" role="button"`;
+      const o = e[s], c = this._getLabel(o), { valueText: a, unitText: d } = this._getValue(o), p = this._getIcon(o), v = f(o.bg_color) ? o.bg_color : "rgba(255,255,255,0.06)", b = f(o.text_color) ? o.text_color : "", m = f(o.icon_color) ? o.icon_color : "", q = o.entity_id.startsWith("demo.") ? "" : `data-entity="${o.entity_id}" tabindex="0" role="button"`;
       n.push(`
         <div class="pill"
           style="
@@ -223,23 +223,23 @@ class C extends HTMLElement {
           ${q}
         >
           <span class="icon"><ha-icon icon="${p}"></ha-icon></span>
-          <span class="label">${this._escape(l)}</span>
+          <span class="label">${this._escape(c)}</span>
           <span class="value">${this._escape(a)}${d ? `<span style="opacity:.75;font-weight:700;margin-left:2px">${this._escape(d)}</span>` : ""}</span>
         </div>
-      `), i && s < e.length - 1 && n.push('<div class="divider" aria-hidden="true"></div>');
+      `), r && s < e.length - 1 && n.push('<div class="divider" aria-hidden="true"></div>');
     }
     return requestAnimationFrame(() => this._wireInteractions()), n.join("");
   }
   _wireInteractions() {
     if (!this._root) return;
     const t = this._root.querySelector(".track");
-    t.__wired || (t.__wired = !0, t.addEventListener("click", (r) => {
-      const i = r.target.closest(".pill")?.getAttribute("data-entity");
-      i && this._openMoreInfo(i);
-    }), t.addEventListener("keydown", (r) => {
-      if (r.key !== "Enter" && r.key !== " ") return;
-      const i = r.target.closest(".pill")?.getAttribute("data-entity");
-      i && (r.preventDefault(), this._openMoreInfo(i));
+    t.__wired || (t.__wired = !0, t.addEventListener("click", (i) => {
+      const r = i.target.closest(".pill")?.getAttribute("data-entity");
+      r && this._openMoreInfo(r);
+    }), t.addEventListener("keydown", (i) => {
+      if (i.key !== "Enter" && i.key !== " ") return;
+      const r = i.target.closest(".pill")?.getAttribute("data-entity");
+      r && (i.preventDefault(), this._openMoreInfo(r));
     }));
   }
   _openMoreInfo(t) {
@@ -264,12 +264,12 @@ class C extends HTMLElement {
     if (t.entity_id.startsWith("demo."))
       return t.entity_id.includes("temperature") ? { valueText: "18.3", unitText: "°C" } : t.entity_id.includes("lights") ? { valueText: "3", unitText: "" } : t.entity_id.includes("security") ? { valueText: "Armed", unitText: "" } : t.entity_id.includes("network") ? { valueText: "Online", unitText: "" } : { valueText: "—", unitText: "" };
     if (!this._hass) return { valueText: "—", unitText: "" };
-    const r = this._hass.states[t.entity_id];
-    if (!r || ["unknown", "unavailable", "none"].includes(r.state)) return { valueText: "—", unitText: "" };
-    const e = r.attributes?.unit_of_measurement, i = r.attributes?.device_class, n = Number(r.state);
-    return isNaN(n) ? { valueText: `${r.state}`, unitText: typeof e == "string" ? e : "" } : {
+    const i = this._hass.states[t.entity_id];
+    if (!i || ["unknown", "unavailable", "none"].includes(i.state)) return { valueText: "—", unitText: "" };
+    const e = i.attributes?.unit_of_measurement, r = i.attributes?.device_class, n = Number(i.state);
+    return isNaN(n) ? { valueText: `${i.state}`, unitText: typeof e == "string" ? e : "" } : {
       valueText: `${Math.round(n * 10) / 10}`,
-      unitText: typeof e == "string" ? e : i === "temperature" ? "°C" : ""
+      unitText: typeof e == "string" ? e : r === "temperature" ? "°C" : ""
     };
   }
   _escape(t) {
@@ -278,25 +278,25 @@ class C extends HTMLElement {
 }
 const k = "scrolling-banner-card";
 customElements.get(k) || customElements.define(k, C);
-function h(c, t) {
-  return Array.isArray(c) ? c : t;
+function h(l, t) {
+  return Array.isArray(l) ? l : t;
 }
-function w(c, t, r) {
-  return Math.max(t, Math.min(r, c));
+function w(l, t, i) {
+  return Math.max(t, Math.min(i, l));
 }
-function u(c, t = "") {
-  return typeof c == "string" ? c : t;
+function u(l, t = "") {
+  return typeof l == "string" ? l : t;
 }
-function $(c, t = !1) {
-  return typeof c == "boolean" ? c : t;
+function $(l, t = !1) {
+  return typeof l == "boolean" ? l : t;
 }
-function E(c, t = 0) {
-  return typeof c == "number" && !Number.isNaN(c) ? c : t;
+function E(l, t = 0) {
+  return typeof l == "number" && !Number.isNaN(l) ? l : t;
 }
-function _(c, t) {
-  if (!c) return t;
-  const r = c.trim();
-  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(r) ? r : t;
+function _(l, t) {
+  if (!l) return t;
+  const i = l.trim();
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(i) ? i : t;
 }
 class T extends HTMLElement {
   setConfig(t) {
@@ -429,7 +429,7 @@ class T extends HTMLElement {
   }
   _render() {
     if (!this._root) return;
-    const t = this._root.querySelector(".wrap"), r = this._root.activeElement, e = r?.id || "", i = typeof r?.selectionStart == "number" ? r.selectionStart : null, n = typeof r?.selectionEnd == "number" ? r.selectionEnd : null, s = this._config;
+    const t = this._root.querySelector(".wrap"), i = this._root.activeElement, e = i?.id || "", r = typeof i?.selectionStart == "number" ? i.selectionStart : null, n = typeof i?.selectionEnd == "number" ? i.selectionEnd : null, s = this._config;
     if (!s) {
       t.innerHTML = '<div class="small">No config yet. Add the card, then open the editor.</div>';
       return;
@@ -489,7 +489,7 @@ class T extends HTMLElement {
         </div>
         <div class="entities">
           ${o.map(
-      (l, a) => `
+      (c, a) => `
             <div class="entity-card" data-idx="${a}">
               <div class="entity-head">
                 <div class="entity-title">Item ${a + 1}</div>
@@ -500,41 +500,41 @@ class T extends HTMLElement {
                 <div class="picker">
                   <div class="h">Entity</div>
                   <div data-picker="entity" data-idx="${a}"></div>
-                  <input id="entity_id_${a}" type="text" value="${u(l.entity_id, "")}" placeholder="sensor.temperature" style="margin-top:8px;" />
+                  <input id="entity_id_${a}" type="text" value="${u(c.entity_id, "")}" placeholder="sensor.temperature" style="margin-top:8px;" />
                 </div>
 
                 <div class="picker">
                   <div class="h">Icon</div>
                   <div data-picker="icon" data-idx="${a}"></div>
-                  <input id="icon_${a}" type="text" value="${u(l.icon, "")}" placeholder="mdi:information-outline" style="margin-top:8px;" />
+                  <input id="icon_${a}" type="text" value="${u(c.icon, "")}" placeholder="mdi:information-outline" style="margin-top:8px;" />
                 </div>
 
                 <div>
                   <div class="h">Label</div>
-                  <input id="label_${a}" type="text" value="${u(l.label, "")}" placeholder="Optional label override" />
+                  <input id="label_${a}" type="text" value="${u(c.label, "")}" placeholder="Optional label override" />
                 </div>
 
                 <div>
                   <div class="h">Pill background</div>
                   <div class="colorRow">
-                    <input id="bg_color_picker_${a}" type="color" value="${_(l.bg_color, "#202020")}" />
-                    <input id="bg_color_${a}" type="text" value="${u(l.bg_color, "")}" placeholder="e.g. rgba(255,255,255,0.06)" />
+                    <input id="bg_color_picker_${a}" type="color" value="${_(c.bg_color, "#202020")}" />
+                    <input id="bg_color_${a}" type="text" value="${u(c.bg_color, "")}" placeholder="e.g. rgba(255,255,255,0.06)" />
                   </div>
                 </div>
 
                 <div>
                   <div class="h">Icon color</div>
                   <div class="colorRow">
-                    <input id="icon_color_picker_${a}" type="color" value="${_(l.icon_color, "#ffffff")}" />
-                    <input id="icon_color_${a}" type="text" value="${u(l.icon_color, "")}" placeholder="e.g. #FFD966" />
+                    <input id="icon_color_picker_${a}" type="color" value="${_(c.icon_color, "#ffffff")}" />
+                    <input id="icon_color_${a}" type="text" value="${u(c.icon_color, "")}" placeholder="e.g. #FFD966" />
                   </div>
                 </div>
 
                 <div>
                   <div class="h">Text color</div>
                   <div class="colorRow">
-                    <input id="text_color_picker_${a}" type="color" value="${_(l.text_color, "#ffffff")}" />
-                    <input id="text_color_${a}" type="text" value="${u(l.text_color, "")}" placeholder="Overrides pill text only" />
+                    <input id="text_color_picker_${a}" type="color" value="${_(c.text_color, "#ffffff")}" />
+                    <input id="text_color_${a}" type="text" value="${u(c.text_color, "")}" placeholder="Overrides pill text only" />
                   </div>
                 </div>
               </div>
@@ -550,83 +550,83 @@ class T extends HTMLElement {
         <textarea id="css" rows="6" placeholder="e.g. .pill { border-radius: 16px; }">${u(s.css, "")}</textarea>
       </div>
     `, this._wire(), e) {
-      const l = this._root.querySelector(`#${CSS.escape(e)}`);
-      l && typeof l.focus == "function" && (l.focus(), i !== null && n !== null && typeof l.setSelectionRange == "function" && l.setSelectionRange(i, n));
+      const c = this._root.querySelector(`#${CSS.escape(e)}`);
+      c && typeof c.focus == "function" && (c.focus(), r !== null && n !== null && typeof c.setSelectionRange == "function" && c.setSelectionRange(r, n));
     }
     this._syncPickers();
   }
   _wire() {
     if (!this._root || !this._config) return;
-    const t = (e, i, n) => {
+    const t = (e, r, n) => {
       const s = this._root.querySelector(e);
-      s && s.addEventListener(i, n);
+      s && s.addEventListener(r, n);
     };
     t("#title", "input", (e) => this._update({ title: e.target.value })), t("#speed", "input", (e) => this._update({ speed: w(Number(e.target.value), 10, 300) })), t("#pause_on_hover", "change", (e) => this._update({ pause_on_hover: e.target.checked })), t("#divider", "change", (e) => this._update({ divider: e.target.checked })), t("#background_picker", "input", (e) => {
-      const i = e.target.value;
-      this._root.querySelector("#background").value = i, this._update({ background: i });
+      const r = e.target.value;
+      this._root.querySelector("#background").value = r, this._update({ background: r });
     }), t("#background", "input", (e) => this._update({ background: e.target.value })), t("#text_color_picker", "input", (e) => {
-      const i = e.target.value;
-      this._root.querySelector("#text_color").value = i, this._update({ text_color: i });
+      const r = e.target.value;
+      this._root.querySelector("#text_color").value = r, this._update({ text_color: r });
     }), t("#text_color", "input", (e) => this._update({ text_color: e.target.value })), t("#divider_color_picker", "input", (e) => {
-      const i = e.target.value;
-      this._root.querySelector("#divider_color").value = i, this._update({ divider_color: i });
+      const r = e.target.value;
+      this._root.querySelector("#divider_color").value = r, this._update({ divider_color: r });
     }), t("#divider_color", "input", (e) => this._update({ divider_color: e.target.value })), t("#css", "input", (e) => this._update({ css: e.target.value })), t("#add_entity", "click", () => {
       const e = h(this._config.entities, []);
       e.push({ entity_id: "" }), this._update({ entities: e });
     }), this._root.querySelectorAll("[data-action='remove']").forEach((e) => {
       e.addEventListener("click", () => {
-        const i = Number(e.getAttribute("data-idx")), n = h(this._config.entities, []);
-        n.splice(i, 1), this._update({ entities: n });
+        const r = Number(e.getAttribute("data-idx")), n = h(this._config.entities, []);
+        n.splice(r, 1), this._update({ entities: n });
       });
-    }), h(this._config.entities, []).forEach((e, i) => {
-      const n = (o, l) => {
+    }), h(this._config.entities, []).forEach((e, r) => {
+      const n = (o, c) => {
         const a = this._root.querySelector(o);
         a && a.addEventListener("input", () => {
           const d = h(this._config.entities, []).slice();
-          d[i] = { ...d[i], [l]: a.value }, this._update({ entities: d });
+          d[r] = { ...d[r], [c]: a.value }, this._update({ entities: d });
         });
       };
-      n(`#entity_id_${i}`, "entity_id"), n(`#label_${i}`, "label"), n(`#icon_${i}`, "icon"), n(`#bg_color_${i}`, "bg_color"), n(`#icon_color_${i}`, "icon_color"), n(`#text_color_${i}`, "text_color");
-      const s = (o, l, a) => {
-        const d = this._root.querySelector(o), p = this._root.querySelector(l);
+      n(`#entity_id_${r}`, "entity_id"), n(`#label_${r}`, "label"), n(`#icon_${r}`, "icon"), n(`#bg_color_${r}`, "bg_color"), n(`#icon_color_${r}`, "icon_color"), n(`#text_color_${r}`, "text_color");
+      const s = (o, c, a) => {
+        const d = this._root.querySelector(o), p = this._root.querySelector(c);
         !d || !p || d.addEventListener("input", () => {
           p.value = d.value;
           const v = h(this._config.entities, []).slice();
-          v[i] = { ...v[i], [a]: d.value }, this._update({ entities: v });
+          v[r] = { ...v[r], [a]: d.value }, this._update({ entities: v });
         });
       };
-      s(`#bg_color_picker_${i}`, `#bg_color_${i}`, "bg_color"), s(`#icon_color_picker_${i}`, `#icon_color_${i}`, "icon_color"), s(`#text_color_picker_${i}`, `#text_color_${i}`, "text_color");
+      s(`#bg_color_picker_${r}`, `#bg_color_${r}`, "bg_color"), s(`#icon_color_picker_${r}`, `#icon_color_${r}`, "icon_color"), s(`#text_color_picker_${r}`, `#text_color_${r}`, "text_color");
     });
   }
   _syncPickers() {
     if (!this._root || !this._config) return;
-    const t = h(this._config.entities, []), r = this._hass;
-    t.forEach((e, i) => {
-      const n = this._root.querySelector(`[data-picker="entity"][data-idx="${i}"]`);
+    const t = h(this._config.entities, []), i = this._hass;
+    t.forEach((e, r) => {
+      const n = this._root.querySelector(`[data-picker="entity"][data-idx="${r}"]`);
       if (n && n.childElementCount === 0 && customElements.get("ha-entity-picker")) {
         const o = document.createElement("ha-entity-picker");
-        o.className = "picker", r && (o.hass = r), o.value = e.entity_id || "", o.setAttribute("allow-custom-entity", ""), o.addEventListener("value-changed", (l) => {
-          const a = l?.detail?.value ?? "", d = this._root.querySelector(`#entity_id_${i}`);
+        o.className = "picker", i && (o.hass = i), o.value = e.entity_id || "", o.setAttribute("allow-custom-entity", ""), o.addEventListener("value-changed", (c) => {
+          const a = c?.detail?.value ?? "", d = this._root.querySelector(`#entity_id_${r}`);
           d.value = a;
           const p = h(this._config.entities, []).slice();
-          p[i] = { ...p[i], entity_id: a }, this._update({ entities: p });
+          p[r] = { ...p[r], entity_id: a }, this._update({ entities: p });
         }), n.appendChild(o);
       } else if (n && n.firstElementChild) {
         const o = n.firstElementChild;
-        r && (o.hass = r), o.value = e.entity_id || "";
+        i && (o.hass = i), o.value = e.entity_id || "";
       }
-      const s = this._root.querySelector(`[data-picker="icon"][data-idx="${i}"]`);
+      const s = this._root.querySelector(`[data-picker="icon"][data-idx="${r}"]`);
       if (s && s.childElementCount === 0 && customElements.get("ha-icon-picker")) {
         const o = document.createElement("ha-icon-picker");
-        o.className = "picker", r && (o.hass = r), o.value = e.icon || "", o.addEventListener("value-changed", (l) => {
-          const a = l?.detail?.value ?? "", d = this._root.querySelector(`#icon_${i}`);
+        o.className = "picker", i && (o.hass = i), o.value = e.icon || "", o.addEventListener("value-changed", (c) => {
+          const a = c?.detail?.value ?? "", d = this._root.querySelector(`#icon_${r}`);
           d.value = a;
           const p = h(this._config.entities, []).slice();
-          p[i] = { ...p[i], icon: a }, this._update({ entities: p });
+          p[r] = { ...p[r], icon: a }, this._update({ entities: p });
         }), s.appendChild(o);
       } else if (s && s.firstElementChild) {
         const o = s.firstElementChild;
-        r && (o.hass = r), o.value = e.icon || "";
+        i && (o.hass = i), o.value = e.icon || "";
       }
     });
   }
