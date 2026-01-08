@@ -6,6 +6,6 @@ import "./editor";
   type: "custom:scrolling-banner-card",
   name: "Scrolling Banner Card",
   description: "A responsive scrolling banner showing entity states.",
-  preview: true,
+  preview: false,
 });
 

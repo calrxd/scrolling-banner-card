@@ -646,5 +646,5 @@ window.customCards.push({
   type: "custom:scrolling-banner-card",
   name: "Scrolling Banner Card",
   description: "A responsive scrolling banner showing entity states.",
-  preview: !0
+  preview: !1
 });
