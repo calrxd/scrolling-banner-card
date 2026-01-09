@@ -1,21 +1,25 @@
 import { defineConfig } from "vite";
+import { createRequire } from "node:module";
 
-// Vite config geared for a single-file Lovelace card build.
+const require = createRequire(import.meta.url);
+const pkg = require("./package.json");
+
 export default defineConfig({
+  define: {
+    __SBC_VERSION__: JSON.stringify(pkg.version),
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    sourcemap: false,
-    target: "es2020",
     lib: {
       entry: "src/index.ts",
       formats: ["es"],
       fileName: () => "scrolling-banner-card.js",
     },
     rollupOptions: {
-      // Ensure we ship a single JS file (no chunks)
       output: {
-        inlineDynamicImports: true,
+        entryFileNames: "scrolling-banner-card.js",
+        assetFileNames: "[name][extname]",
       },
     },
   },

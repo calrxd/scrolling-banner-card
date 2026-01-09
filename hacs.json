@@ -2,5 +2,6 @@
   "name": "Scrolling Banner Card",
   "content_in_root": false,
   "render_readme": true,
+  "iot_class": "local",
   "filename": "scrolling-banner-card.js"
 }
