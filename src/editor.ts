@@ -70,6 +70,7 @@ class ScrollingBannerCardEditor extends HTMLElement {
   private _root?: ShadowRoot;
 
   private _activeEntityIdx = 0;
+  private _showEntityCode = false;
 
   setConfig(config: Partial<ScrollingBannerConfig>) {
     const cfg = (config ?? {}) as Partial<ScrollingBannerConfig>;
@@ -147,6 +148,11 @@ class ScrollingBannerCardEditor extends HTMLElement {
   private _setActiveEntityIdx(idx: number) {
     this._activeEntityIdx = idx;
     this._clampActiveIdx();
+    this._render();
+  }
+
+  private _toggleEntityCode() {
+    this._showEntityCode = !this._showEntityCode;
     this._render();
   }
 
@@ -391,6 +397,27 @@ class ScrollingBannerCardEditor extends HTMLElement {
           font-size: 12px;
           line-height: 1.35;
         }
+
+        .iconbtn {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.16);
+          background: rgba(0,0,0,0.10);
+          color: inherit;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 900;
+          letter-spacing: -0.5px;
+          user-select: none;
+        }
+
+        .iconbtn.active {
+          border-color: rgba(255,255,255,0.30);
+          background: rgba(255,255,255,0.08);
+        }
       </style>
       <div class="wrap"></div>
     `;
@@ -489,16 +516,25 @@ class ScrollingBannerCardEditor extends HTMLElement {
                     <div class="entity-title">Item ${idx + 1}</div>
                   </div>
                   <div class="left">
+                    <button class="iconbtn ${this._showEntityCode ? "active" : ""}" id="toggle_entity_code" type="button" title="Show/hide entity JSON">
+                      &lt;/&gt;
+                    </button>
                     <button class="btn" id="copy_entity" type="button">Copy</button>
                     <button class="btn" id="paste_entity" type="button">Paste</button>
                     <button class="remove" id="delete_entity" type="button">Delete</button>
                   </div>
                 </div>
 
-                <div class="h">Entity JSON (copy/paste)</div>
-                <textarea id="entity_code" class="codebox" rows="8" spellcheck="false">${this._escapeText(
-                  this._entityToCode(current!)
-                )}</textarea>
+                ${
+                  this._showEntityCode
+                    ? `
+                      <div class="h">Entity JSON (copy/paste)</div>
+                      <textarea id="entity_code" class="codebox" rows="8" spellcheck="false">${this._escapeText(
+                        this._entityToCode(current!)
+                      )}</textarea>
+                    `
+                    : ""
+                }
 
                 <div class="small" style="margin:10px 0 6px;">Form fields (kept in sync)</div>
 
@@ -625,6 +661,9 @@ class ScrollingBannerCardEditor extends HTMLElement {
     // Add entity (+)
     on("#add_entity_tab", "click", () => this._addEntityAndFocus());
 
+    // Toggle JSON panel
+    on("#toggle_entity_code", "click", () => this._toggleEntityCode());
+
     // Entity toolbar + codebox
     on("#copy_entity", "click", async () => {
       try {
@@ -644,7 +683,7 @@ class ScrollingBannerCardEditor extends HTMLElement {
 
     on("#delete_entity", "click", () => this._deleteActiveEntity());
 
-    // Apply JSON when changed
+    // Apply JSON when changed (only exists if panel is open)
     on("#entity_code", "change", () => this._applyActiveEntityCodeFromTextareaOrClipboard());
 
     // Active entity input bindings (only bind current)

@@ -11,7 +11,7 @@ function m(l, t, e) {
 function g(l, t = "") {
   return typeof l == "string" ? l : t;
 }
-function f(l) {
+function y(l) {
   return typeof l == "string" && l.trim().length > 0;
 }
 class A extends HTMLElement {
@@ -192,38 +192,38 @@ class A extends HTMLElement {
     if (!this._root || !this._config) return;
     const e = this._root.querySelector(".card"), i = this._root.querySelector(".title"), s = this._root.querySelector(".header"), u = this._root.querySelector(".track"), a = this._root.querySelector(".user-css");
     this._config.pause_on_hover ? this.classList.add("pause-on-hover") : this.classList.remove("pause-on-hover"), this._config.title && this._config.title.trim().length > 0 ? (s.style.display = "flex", i.textContent = this._config.title) : (s.style.display = "none", i.textContent = ""), e.style.setProperty("--sb-bg", this._config.background || "transparent"), e.style.setProperty("--sb-text", this._config.text_color || "rgba(255,255,255,0.92)"), e.style.setProperty("--sb-divider", this._config.divider_color || "rgba(255,255,255,0.14)"), a.textContent = this._config.css ? this._config.css : "";
-    const o = this._config.entities && this._config.entities.length > 0 ? this._config.entities : x;
-    t ? (u.innerHTML = this._renderItemsHtml(o, !1), requestAnimationFrame(() => this._recalcMarquee(o))) : (u.innerHTML = this._renderItemsHtml(o, this._needsMarquee), requestAnimationFrame(() => this._recalcMarquee(o)));
+    const n = this._config.entities && this._config.entities.length > 0 ? this._config.entities : x;
+    t ? (u.innerHTML = this._renderItemsHtml(n, !1), requestAnimationFrame(() => this._recalcMarquee(n))) : (u.innerHTML = this._renderItemsHtml(n, this._needsMarquee), requestAnimationFrame(() => this._recalcMarquee(n)));
   }
   _recalcMarquee(t) {
     if (!this._root || !this._config) return;
     const e = this._root.querySelector(".viewport"), i = this._root.querySelector(".track"), s = t || (this._config.entities && this._config.entities.length > 0 ? this._config.entities : x);
     if (!i.firstElementChild) return;
-    const u = i.getAttribute("data-duplicated") === "true", a = u ? i.scrollWidth / 2 : i.scrollWidth, o = e.clientWidth, r = a > o + 8;
-    if (this._needsMarquee = r, !r) {
+    const u = i.getAttribute("data-duplicated") === "true", a = u ? i.scrollWidth / 2 : i.scrollWidth, n = e.clientWidth, o = a > n + 8;
+    if (this._needsMarquee = o, !o) {
       u && (i.innerHTML = this._renderItemsHtml(s, !1), i.setAttribute("data-duplicated", "false")), i.classList.remove("marquee"), i.classList.add("centered"), i.style.removeProperty("--sb-shift"), i.style.removeProperty("--sb-duration");
       return;
     }
     u || (i.innerHTML = this._renderItemsHtml(s, !0), i.setAttribute("data-duplicated", "true"));
-    const n = i.scrollWidth / 2, c = typeof this._config.speed == "number" ? m(this._config.speed, 10, 300) : 40, p = Math.max(6, n / c);
-    i.classList.add("marquee"), i.classList.remove("centered"), i.style.setProperty("--sb-shift", `${n}px`), i.style.setProperty("--sb-duration", `${p}s`);
+    const r = i.scrollWidth / 2, c = typeof this._config.speed == "number" ? m(this._config.speed, 10, 300) : 40, p = Math.max(6, r / c);
+    i.classList.add("marquee"), i.classList.remove("centered"), i.style.setProperty("--sb-shift", `${r}px`), i.style.setProperty("--sb-duration", `${p}s`);
   }
   _renderItemsHtml(t, e) {
     const i = e ? [...t, ...t] : t, s = !!this._config.divider, u = [];
     for (let a = 0; a < i.length; a++) {
-      const o = i[a], r = this._getLabel(o), { valueText: n, unitText: c } = this._getValue(o), p = this._getIcon(o), _ = f(o.bg_color) ? o.bg_color : "rgba(255,255,255,0.06)", y = f(o.text_color) ? o.text_color : "", b = f(o.icon_color) ? o.icon_color : "", T = o.entity_id.startsWith("demo.") ? "" : `data-entity="${o.entity_id}" tabindex="0" role="button"`;
+      const n = i[a], o = this._getLabel(n), { valueText: r, unitText: c } = this._getValue(n), p = this._getIcon(n), _ = y(n.bg_color) ? n.bg_color : "rgba(255,255,255,0.06)", b = y(n.text_color) ? n.text_color : "", f = y(n.icon_color) ? n.icon_color : "", T = n.entity_id.startsWith("demo.") ? "" : `data-entity="${n.entity_id}" tabindex="0" role="button"`;
       u.push(`
         <div class="pill"
           style="
             --sb-pill-bg: ${_};
-            ${y ? `--sb-pill-text:${y};` : ""}
-            ${b ? `--sb-pill-icon:${b};` : ""}
+            ${b ? `--sb-pill-text:${b};` : ""}
+            ${f ? `--sb-pill-icon:${f};` : ""}
           "
           ${T}
         >
           <span class="icon"><ha-icon icon="${p}"></ha-icon></span>
-          <span class="label">${this._escape(r)}</span>
-          <span class="value">${this._escape(n)}${c ? `<span style="opacity:.75;font-weight:700;margin-left:2px">${this._escape(c)}</span>` : ""}</span>
+          <span class="label">${this._escape(o)}</span>
+          <span class="value">${this._escape(r)}${c ? `<span style="opacity:.75;font-weight:700;margin-left:2px">${this._escape(c)}</span>` : ""}</span>
         </div>
       `), s && a < i.length - 1 && u.push('<div class="divider" aria-hidden="true"></div>');
     }
@@ -275,12 +275,12 @@ class A extends HTMLElement {
     return t.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
   }
 }
-const k = "scrolling-banner-card";
-customElements.get(k) || customElements.define(k, A);
+const w = "scrolling-banner-card";
+customElements.get(w) || customElements.define(w, A);
 function h(l, t) {
   return Array.isArray(l) ? l : t;
 }
-function w(l, t, e) {
+function k(l, t, e) {
   return Math.max(t, Math.min(e, l));
 }
 function d(l, t = "") {
@@ -307,7 +307,7 @@ function I(l) {
 }
 class q extends HTMLElement {
   constructor() {
-    super(...arguments), this._activeEntityIdx = 0;
+    super(...arguments), this._activeEntityIdx = 0, this._showEntityCode = !1;
   }
   setConfig(t) {
     const e = t ?? {};
@@ -315,7 +315,7 @@ class q extends HTMLElement {
       type: "custom:scrolling-banner-card",
       title: d(e.title, ""),
       entities: h(e.entities, []),
-      speed: w($(e.speed, 40), 10, 300),
+      speed: k($(e.speed, 40), 10, 300),
       pause_on_hover: E(e.pause_on_hover, !0),
       divider: E(e.divider, !0),
       background: d(e.background, "transparent"),
@@ -358,6 +358,9 @@ class q extends HTMLElement {
   }
   _setActiveEntityIdx(t) {
     this._activeEntityIdx = t, this._clampActiveIdx(), this._render();
+  }
+  _toggleEntityCode() {
+    this._showEntityCode = !this._showEntityCode, this._render();
   }
   _entityToCode(t) {
     return JSON.stringify(
@@ -572,6 +575,27 @@ class q extends HTMLElement {
           font-size: 12px;
           line-height: 1.35;
         }
+
+        .iconbtn {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.16);
+          background: rgba(0,0,0,0.10);
+          color: inherit;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 900;
+          letter-spacing: -0.5px;
+          user-select: none;
+        }
+
+        .iconbtn.active {
+          border-color: rgba(255,255,255,0.30);
+          background: rgba(255,255,255,0.08);
+        }
       </style>
       <div class="wrap"></div>
     `);
@@ -583,9 +607,9 @@ class q extends HTMLElement {
       t.innerHTML = '<div class="small">Loading…</div>';
       return;
     }
-    const o = h(a.entities, []);
+    const n = h(a.entities, []);
     this._clampActiveIdx();
-    const r = o.length > 0, n = this._activeEntityIdx, c = r ? o[n] : void 0;
+    const o = n.length > 0, r = this._activeEntityIdx, c = o ? n[r] : void 0;
     if (t.innerHTML = `
       <div class="row">
         <div>
@@ -637,71 +661,76 @@ class q extends HTMLElement {
         <div class="h">Entities</div>
 
         <div class="tabs" id="entity_tabs">
-          ${o.map(
-      (p, _) => `<button class="tab ${_ === n ? "active" : ""}" data-tab="${_}" type="button">${_ + 1}</button>`
+          ${n.map(
+      (p, _) => `<button class="tab ${_ === r ? "active" : ""}" data-tab="${_}" type="button">${_ + 1}</button>`
     ).join("")}
           <button class="tab add" id="add_entity_tab" type="button">+</button>
         </div>
 
-        ${r ? `
-              <div class="entity-card" data-idx="${n}">
+        ${o ? `
+              <div class="entity-card" data-idx="${r}">
                 <div class="entity-toolbar">
                   <div class="left">
-                    <div class="entity-title">Item ${n + 1}</div>
+                    <div class="entity-title">Item ${r + 1}</div>
                   </div>
                   <div class="left">
+                    <button class="iconbtn ${this._showEntityCode ? "active" : ""}" id="toggle_entity_code" type="button" title="Show/hide entity JSON">
+                      &lt;/&gt;
+                    </button>
                     <button class="btn" id="copy_entity" type="button">Copy</button>
                     <button class="btn" id="paste_entity" type="button">Paste</button>
                     <button class="remove" id="delete_entity" type="button">Delete</button>
                   </div>
                 </div>
 
-                <div class="h">Entity JSON (copy/paste)</div>
-                <textarea id="entity_code" class="codebox" rows="8" spellcheck="false">${this._escapeText(
+                ${this._showEntityCode ? `
+                      <div class="h">Entity JSON (copy/paste)</div>
+                      <textarea id="entity_code" class="codebox" rows="8" spellcheck="false">${this._escapeText(
       this._entityToCode(c)
     )}</textarea>
+                    ` : ""}
 
                 <div class="small" style="margin:10px 0 6px;">Form fields (kept in sync)</div>
 
                 <div class="grid2">
                   <div class="picker">
                     <div class="h">Entity</div>
-                    <div data-picker="entity" data-idx="${n}"></div>
-                    <input id="entity_id_${n}" type="text" value="${d(c.entity_id, "")}" placeholder="sensor.temperature" style="margin-top:8px;" />
+                    <div data-picker="entity" data-idx="${r}"></div>
+                    <input id="entity_id_${r}" type="text" value="${d(c.entity_id, "")}" placeholder="sensor.temperature" style="margin-top:8px;" />
                   </div>
 
                   <div class="picker">
                     <div class="h">Icon</div>
-                    <div data-picker="icon" data-idx="${n}"></div>
-                    <input id="icon_${n}" type="text" value="${d(c.icon, "")}" placeholder="mdi:information-outline" style="margin-top:8px;" />
+                    <div data-picker="icon" data-idx="${r}"></div>
+                    <input id="icon_${r}" type="text" value="${d(c.icon, "")}" placeholder="mdi:information-outline" style="margin-top:8px;" />
                   </div>
 
                   <div>
                     <div class="h">Label</div>
-                    <input id="label_${n}" type="text" value="${d(c.label, "")}" placeholder="Optional label override" />
+                    <input id="label_${r}" type="text" value="${d(c.label, "")}" placeholder="Optional label override" />
                   </div>
 
                   <div>
                     <div class="h">Pill background</div>
                     <div class="colorRow">
-                      <input id="bg_color_picker_${n}" type="color" value="${v(c.bg_color, "#202020")}" />
-                      <input id="bg_color_${n}" type="text" value="${d(c.bg_color, "")}" placeholder="e.g. rgba(255,255,255,0.06)" />
+                      <input id="bg_color_picker_${r}" type="color" value="${v(c.bg_color, "#202020")}" />
+                      <input id="bg_color_${r}" type="text" value="${d(c.bg_color, "")}" placeholder="e.g. rgba(255,255,255,0.06)" />
                     </div>
                   </div>
 
                   <div>
                     <div class="h">Icon color</div>
                     <div class="colorRow">
-                      <input id="icon_color_picker_${n}" type="color" value="${v(c.icon_color, "#ffffff")}" />
-                      <input id="icon_color_${n}" type="text" value="${d(c.icon_color, "")}" placeholder="e.g. #FFD966" />
+                      <input id="icon_color_picker_${r}" type="color" value="${v(c.icon_color, "#ffffff")}" />
+                      <input id="icon_color_${r}" type="text" value="${d(c.icon_color, "")}" placeholder="e.g. #FFD966" />
                     </div>
                   </div>
 
                   <div>
                     <div class="h">Text color</div>
                     <div class="colorRow">
-                      <input id="text_color_picker_${n}" type="color" value="${v(c.text_color, "#ffffff")}" />
-                      <input id="text_color_${n}" type="text" value="${d(c.text_color, "")}" placeholder="Overrides pill text only" />
+                      <input id="text_color_picker_${r}" type="color" value="${v(c.text_color, "#ffffff")}" />
+                      <input id="text_color_${r}" type="text" value="${d(c.text_color, "")}" placeholder="Overrides pill text only" />
                     </div>
                   </div>
                 </div>
@@ -721,27 +750,27 @@ class q extends HTMLElement {
   }
   _wire() {
     if (!this._root || !this._config) return;
-    const t = (r, n, c) => {
-      const p = this._root.querySelector(r);
-      p && p.addEventListener(n, c);
+    const t = (o, r, c) => {
+      const p = this._root.querySelector(o);
+      p && p.addEventListener(r, c);
     };
-    t("#title", "input", (r) => this._update({ title: r.target.value })), t("#speed", "input", (r) => this._update({ speed: w(Number(r.target.value), 10, 300) })), t("#pause_on_hover", "change", (r) => this._update({ pause_on_hover: r.target.checked })), t("#divider", "change", (r) => this._update({ divider: r.target.checked })), t("#background_picker", "input", (r) => {
-      const n = r.target.value;
-      this._root.querySelector("#background").value = n, this._update({ background: n });
-    }), t("#background", "input", (r) => this._update({ background: r.target.value })), t("#text_color_picker", "input", (r) => {
-      const n = r.target.value;
-      this._root.querySelector("#text_color").value = n, this._update({ text_color: n });
-    }), t("#text_color", "input", (r) => this._update({ text_color: r.target.value })), t("#divider_color_picker", "input", (r) => {
-      const n = r.target.value;
-      this._root.querySelector("#divider_color").value = n, this._update({ divider_color: n });
-    }), t("#divider_color", "input", (r) => this._update({ divider_color: r.target.value })), t("#css", "input", (r) => this._update({ css: r.target.value }));
+    t("#title", "input", (o) => this._update({ title: o.target.value })), t("#speed", "input", (o) => this._update({ speed: k(Number(o.target.value), 10, 300) })), t("#pause_on_hover", "change", (o) => this._update({ pause_on_hover: o.target.checked })), t("#divider", "change", (o) => this._update({ divider: o.target.checked })), t("#background_picker", "input", (o) => {
+      const r = o.target.value;
+      this._root.querySelector("#background").value = r, this._update({ background: r });
+    }), t("#background", "input", (o) => this._update({ background: o.target.value })), t("#text_color_picker", "input", (o) => {
+      const r = o.target.value;
+      this._root.querySelector("#text_color").value = r, this._update({ text_color: r });
+    }), t("#text_color", "input", (o) => this._update({ text_color: o.target.value })), t("#divider_color_picker", "input", (o) => {
+      const r = o.target.value;
+      this._root.querySelector("#divider_color").value = r, this._update({ divider_color: r });
+    }), t("#divider_color", "input", (o) => this._update({ divider_color: o.target.value })), t("#css", "input", (o) => this._update({ css: o.target.value }));
     const e = this._root.querySelector("#entity_tabs");
-    e && !e.__wired && (e.__wired = !0, e.addEventListener("click", (r) => {
-      const n = r.target.closest("button.tab");
-      if (!n) return;
-      const c = n.getAttribute("data-tab");
+    e && !e.__wired && (e.__wired = !0, e.addEventListener("click", (o) => {
+      const r = o.target.closest("button.tab");
+      if (!r) return;
+      const c = r.getAttribute("data-tab");
       c !== null && this._setActiveEntityIdx(Number(c));
-    })), t("#add_entity_tab", "click", () => this._addEntityAndFocus()), t("#copy_entity", "click", async () => {
+    })), t("#add_entity_tab", "click", () => this._addEntityAndFocus()), t("#toggle_entity_code", "click", () => this._toggleEntityCode()), t("#copy_entity", "click", async () => {
       try {
         await this._copyActiveEntityCode();
       } catch {
@@ -756,18 +785,18 @@ class q extends HTMLElement {
     }), t("#delete_entity", "click", () => this._deleteActiveEntity()), t("#entity_code", "change", () => this._applyActiveEntityCodeFromTextareaOrClipboard());
     const i = h(this._config.entities, []), s = this._activeEntityIdx;
     if (!i[s]) return;
-    const a = (r, n) => {
+    const a = (o, r) => {
       const c = i.slice();
-      c[s] = { ...c[s], [r]: n }, this._update({ entities: c });
+      c[s] = { ...c[s], [o]: r }, this._update({ entities: c });
     };
-    t(`#entity_id_${s}`, "input", (r) => a("entity_id", r.target.value)), t(`#label_${s}`, "input", (r) => a("label", r.target.value)), t(`#icon_${s}`, "input", (r) => a("icon", r.target.value)), t(`#bg_color_${s}`, "input", (r) => a("bg_color", r.target.value)), t(`#icon_color_${s}`, "input", (r) => a("icon_color", r.target.value)), t(`#text_color_${s}`, "input", (r) => a("text_color", r.target.value));
-    const o = (r, n, c) => {
-      const p = this._root.querySelector(r), _ = this._root.querySelector(n);
+    t(`#entity_id_${s}`, "input", (o) => a("entity_id", o.target.value)), t(`#label_${s}`, "input", (o) => a("label", o.target.value)), t(`#icon_${s}`, "input", (o) => a("icon", o.target.value)), t(`#bg_color_${s}`, "input", (o) => a("bg_color", o.target.value)), t(`#icon_color_${s}`, "input", (o) => a("icon_color", o.target.value)), t(`#text_color_${s}`, "input", (o) => a("text_color", o.target.value));
+    const n = (o, r, c) => {
+      const p = this._root.querySelector(o), _ = this._root.querySelector(r);
       !p || !_ || p.addEventListener("input", () => {
         _.value = p.value, a(c, p.value);
       });
     };
-    o(`#bg_color_picker_${s}`, `#bg_color_${s}`, "bg_color"), o(`#icon_color_picker_${s}`, `#icon_color_${s}`, "icon_color"), o(`#text_color_picker_${s}`, `#text_color_${s}`, "text_color");
+    n(`#bg_color_picker_${s}`, `#bg_color_${s}`, "bg_color"), n(`#icon_color_picker_${s}`, `#icon_color_${s}`, "icon_color"), n(`#text_color_picker_${s}`, `#text_color_${s}`, "text_color");
   }
   _syncPickers() {
     if (!this._root || !this._config) return;
@@ -775,29 +804,29 @@ class q extends HTMLElement {
     if (!s) return;
     const u = this._root.querySelector(`[data-picker="entity"][data-idx="${i}"]`);
     if (u && u.childElementCount === 0 && customElements.get("ha-entity-picker")) {
-      const o = document.createElement("ha-entity-picker");
-      o.className = "picker", e && (o.hass = e), o.value = s.entity_id || "", o.setAttribute("allow-custom-entity", ""), o.addEventListener("value-changed", (r) => {
-        const n = r?.detail?.value ?? "", c = this._root.querySelector(`#entity_id_${i}`);
-        c && (c.value = n);
+      const n = document.createElement("ha-entity-picker");
+      n.className = "picker", e && (n.hass = e), n.value = s.entity_id || "", n.setAttribute("allow-custom-entity", ""), n.addEventListener("value-changed", (o) => {
+        const r = o?.detail?.value ?? "", c = this._root.querySelector(`#entity_id_${i}`);
+        c && (c.value = r);
         const p = h(this._config.entities, []).slice();
-        p[i] = { ...p[i], entity_id: n }, this._update({ entities: p });
-      }), u.appendChild(o);
+        p[i] = { ...p[i], entity_id: r }, this._update({ entities: p });
+      }), u.appendChild(n);
     } else if (u && u.firstElementChild) {
-      const o = u.firstElementChild;
-      e && (o.hass = e), o.value = s.entity_id || "";
+      const n = u.firstElementChild;
+      e && (n.hass = e), n.value = s.entity_id || "";
     }
     const a = this._root.querySelector(`[data-picker="icon"][data-idx="${i}"]`);
     if (a && a.childElementCount === 0 && customElements.get("ha-icon-picker")) {
-      const o = document.createElement("ha-icon-picker");
-      o.className = "picker", e && (o.hass = e), o.value = s.icon || "", o.addEventListener("value-changed", (r) => {
-        const n = r?.detail?.value ?? "", c = this._root.querySelector(`#icon_${i}`);
-        c && (c.value = n);
+      const n = document.createElement("ha-icon-picker");
+      n.className = "picker", e && (n.hass = e), n.value = s.icon || "", n.addEventListener("value-changed", (o) => {
+        const r = o?.detail?.value ?? "", c = this._root.querySelector(`#icon_${i}`);
+        c && (c.value = r);
         const p = h(this._config.entities, []).slice();
-        p[i] = { ...p[i], icon: n }, this._update({ entities: p });
-      }), a.appendChild(o);
+        p[i] = { ...p[i], icon: r }, this._update({ entities: p });
+      }), a.appendChild(n);
     } else if (a && a.firstElementChild) {
-      const o = a.firstElementChild;
-      e && (o.hass = e), o.value = s.icon || "";
+      const n = a.firstElementChild;
+      e && (n.hass = e), n.value = s.icon || "";
     }
   }
   _update(t) {
