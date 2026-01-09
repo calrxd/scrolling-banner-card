@@ -107,12 +107,9 @@ set hass(hass: Hass) {
   this._render(false);
 }
 
-static async getConfigElement() {
-  // Ensure the editor module is loaded/registered before creating the element.
-  await import("./editor");
+static getConfigElement() {
   return document.createElement("scrolling-banner-card-editor");
 }
-
 
 static getStubConfig(): ScrollingBannerConfig {
   return {

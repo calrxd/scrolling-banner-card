@@ -36,8 +36,8 @@ class C extends HTMLElement {
   set hass(t) {
     this._hass = t, this._render(!1);
   }
-  static async getConfigElement() {
-    return await Promise.resolve().then(() => A), document.createElement("scrolling-banner-card-editor");
+  static getConfigElement() {
+    return document.createElement("scrolling-banner-card-editor");
   }
   static getStubConfig() {
     return {
@@ -306,7 +306,7 @@ function T(c) {
     return c;
   }
 }
-class M extends HTMLElement {
+class A extends HTMLElement {
   setConfig(t) {
     const e = t ?? {};
     this._config = {
@@ -650,10 +650,7 @@ class M extends HTMLElement {
   }
 }
 const S = "scrolling-banner-card-editor";
-customElements.get(S) || customElements.define(S, M);
-const A = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-  __proto__: null
-}, Symbol.toStringTag, { value: "Module" }));
+customElements.get(S) || customElements.define(S, A);
 window.customCards.push({
   type: "custom:scrolling-banner-card",
   name: "Scrolling Banner Card",
