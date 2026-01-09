@@ -2,7 +2,5 @@
   "name": "Scrolling Banner Card",
   "content_in_root": false,
   "render_readme": true,
-  "domains": ["lovelace"],
-  "iot_class": "local",
   "filename": "scrolling-banner-card.js"
 }
