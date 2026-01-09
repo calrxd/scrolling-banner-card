@@ -69,8 +69,9 @@ class ScrollingBannerCardEditor extends HTMLElement {
   private _hass?: Hass;
   private _root?: ShadowRoot;
 
+  private _activeEntityIdx = 0;
+
   setConfig(config: Partial<ScrollingBannerConfig>) {
-    // HA can call setConfig with empty/partial config during picker flows.
     const cfg = (config ?? {}) as Partial<ScrollingBannerConfig>;
 
     this._config = {
@@ -90,47 +91,158 @@ class ScrollingBannerCardEditor extends HTMLElement {
       css: asStr(cfg.css, ""),
     };
 
+    this._clampActiveIdx();
     this._ensureRoot();
     this._render();
   }
 
   set hass(hass: Hass) {
     this._hass = hass;
-    // update pickers after render
     this._syncPickers();
   }
 
- connectedCallback() {
-  this._ensureRoot();
+  connectedCallback() {
+    this._ensureRoot();
 
-  // If HA mounts editor before setConfig, create a safe default config
-  if (!this._config) {
-    this._config = {
-      type: "custom:scrolling-banner-card",
-      title: "",
-      entities: [],
-      speed: 40,
-      pause_on_hover: true,
-      divider: true,
-      background: "transparent",
-      text_color: "rgba(255,255,255,0.92)",
-      divider_color: "rgba(255,255,255,0.14)",
-      css: "",
-    };
+    // If HA mounts editor before setConfig, create safe defaults.
+    if (!this._config) {
+      this._config = {
+        type: "custom:scrolling-banner-card",
+        title: "",
+        entities: [],
+        speed: 40,
+        pause_on_hover: true,
+        divider: true,
+        background: "transparent",
+        text_color: "rgba(255,255,255,0.92)",
+        divider_color: "rgba(255,255,255,0.14)",
+        css: "",
+      };
 
-    // Notify HA so the editor isn't stuck with "undefined config"
-    this.dispatchEvent(
-      new CustomEvent("config-changed", {
-        detail: { config: this._config },
-        bubbles: true,
-        composed: true,
-      })
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: this._config },
+          bubbles: true,
+          composed: true,
+        })
+      );
+    }
+
+    this._clampActiveIdx();
+    this._render();
+  }
+
+  // ---------- Entity tab helpers ----------
+
+  private _clampActiveIdx() {
+    const entities = ensureArray<BannerEntity>(this._config?.entities, []);
+    if (entities.length === 0) {
+      this._activeEntityIdx = 0;
+      return;
+    }
+    if (this._activeEntityIdx < 0) this._activeEntityIdx = 0;
+    if (this._activeEntityIdx > entities.length - 1) this._activeEntityIdx = entities.length - 1;
+  }
+
+  private _setActiveEntityIdx(idx: number) {
+    this._activeEntityIdx = idx;
+    this._clampActiveIdx();
+    this._render();
+  }
+
+  private _entityToCode(e: BannerEntity) {
+    return JSON.stringify(
+      {
+        entity_id: asStr(e.entity_id, ""),
+        label: asStr(e.label, ""),
+        icon: asStr(e.icon, ""),
+        bg_color: asStr(e.bg_color, ""),
+        icon_color: asStr(e.icon_color, ""),
+        text_color: asStr(e.text_color, ""),
+      },
+      null,
+      2
     );
   }
 
-  this._render();
-}
+  private _codeToEntity(text: string): BannerEntity | null {
+    try {
+      const obj = JSON.parse(text);
+      if (!obj || typeof obj !== "object") return null;
+      return {
+        entity_id: asStr((obj as any).entity_id, ""),
+        label: asStr((obj as any).label, ""),
+        icon: asStr((obj as any).icon, ""),
+        bg_color: asStr((obj as any).bg_color, ""),
+        icon_color: asStr((obj as any).icon_color, ""),
+        text_color: asStr((obj as any).text_color, ""),
+      };
+    } catch {
+      return null;
+    }
+  }
 
+  private _escapeText(s: string) {
+    return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  }
+
+  private async _copyActiveEntityCode() {
+    if (!this._config) return;
+    const entities = ensureArray<BannerEntity>(this._config.entities, []);
+    const e = entities[this._activeEntityIdx];
+    if (!e) return;
+
+    const code = this._entityToCode(e);
+    await navigator.clipboard.writeText(code);
+  }
+
+  private async _applyActiveEntityCodeFromTextareaOrClipboard() {
+    if (!this._root || !this._config) return;
+
+    const entities = ensureArray<BannerEntity>(this._config.entities, []);
+    if (!entities[this._activeEntityIdx]) return;
+
+    const textarea = this._root.querySelector("#entity_code") as HTMLTextAreaElement | null;
+    const text = textarea?.value?.trim()
+      ? textarea.value
+      : await (async () => {
+          try {
+            return await navigator.clipboard.readText();
+          } catch {
+            return "";
+          }
+        })();
+
+    const parsed = this._codeToEntity(text);
+    if (!parsed) {
+      alert("Could not parse entity JSON. Make sure it is valid JSON.");
+      return;
+    }
+
+    const next = entities.slice();
+    next[this._activeEntityIdx] = parsed;
+    this._update({ entities: next });
+  }
+
+  private _deleteActiveEntity() {
+    if (!this._config) return;
+    const entities = ensureArray<BannerEntity>(this._config.entities, []);
+    if (entities.length === 0) return;
+
+    entities.splice(this._activeEntityIdx, 1);
+    this._activeEntityIdx = Math.max(0, this._activeEntityIdx - 1);
+    this._update({ entities });
+  }
+
+  private _addEntityAndFocus() {
+    if (!this._config) return;
+    const entities = ensureArray<BannerEntity>(this._config.entities, []);
+    entities.push({ entity_id: "" });
+    this._activeEntityIdx = entities.length - 1;
+    this._update({ entities });
+  }
+
+  // ---------- UI ----------
 
   private _ensureRoot() {
     if (this._root) return;
@@ -138,9 +250,7 @@ class ScrollingBannerCardEditor extends HTMLElement {
     this._root.innerHTML = `
       <style>
         :host { display:block; }
-        .wrap {
-          padding: 12px;
-        }
+        .wrap { padding: 12px; }
 
         .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
         .row > * { flex: 1 1 220px; }
@@ -176,25 +286,11 @@ class ScrollingBannerCardEditor extends HTMLElement {
           user-select:none;
         }
 
-        .entities {
-          display:flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
         .entity-card {
           padding: 12px;
           border-radius: 14px;
           border: 1px solid rgba(255,255,255,0.12);
           background: rgba(0,0,0,0.08);
-        }
-
-        .entity-head {
-          display:flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 10px;
         }
 
         .entity-title {
@@ -204,7 +300,7 @@ class ScrollingBannerCardEditor extends HTMLElement {
         }
 
         .remove {
-          padding: 6px 10px;
+          padding: 8px 10px;
           border-radius: 10px;
           border: 1px solid rgba(255,255,255,0.16);
           background: rgba(255,80,80,0.14);
@@ -238,6 +334,63 @@ class ScrollingBannerCardEditor extends HTMLElement {
           width:100%;
           min-width: 220px;
         }
+
+        /* Tabs */
+        .tabs {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          margin: 8px 0 12px;
+          flex-wrap: wrap;
+        }
+
+        .tab {
+          min-width: 34px;
+          height: 34px;
+          padding: 0 10px;
+          border-radius: 999px;
+          border: 1px solid rgba(255,255,255,0.16);
+          background: rgba(0,0,0,0.10);
+          color: inherit;
+          cursor: pointer;
+          font-weight: 700;
+          opacity: 0.85;
+        }
+
+        .tab.active {
+          opacity: 1;
+          border-color: rgba(255,255,255,0.30);
+          background: rgba(255,255,255,0.08);
+        }
+
+        .tab.add {
+          font-size: 18px;
+          line-height: 1;
+          padding: 0 12px;
+        }
+
+        .entity-toolbar {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          flex-wrap: wrap;
+        }
+
+        .entity-toolbar .left {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .codebox {
+          width: 100%;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          font-size: 12px;
+          line-height: 1.35;
+        }
       </style>
       <div class="wrap"></div>
     `;
@@ -255,11 +408,16 @@ class ScrollingBannerCardEditor extends HTMLElement {
 
     const cfg = this._config;
     if (!cfg) {
-      wrap.innerHTML = `<div class="small">No config yet. Add the card, then open the editor.</div>`;
+      wrap.innerHTML = `<div class="small">Loading…</div>`;
       return;
     }
 
     const entities = ensureArray<BannerEntity>(cfg.entities, []);
+    this._clampActiveIdx();
+
+    const hasEntities = entities.length > 0;
+    const idx = this._activeEntityIdx;
+    const current = hasEntities ? entities[idx] : undefined;
 
     wrap.innerHTML = `
       <div class="row">
@@ -310,66 +468,85 @@ class ScrollingBannerCardEditor extends HTMLElement {
 
       <div class="section">
         <div class="h">Entities</div>
-        <div style="margin-bottom:10px;">
-          <button class="btn" id="add_entity">+ Add entity</button>
-        </div>
-        <div class="entities">
+
+        <div class="tabs" id="entity_tabs">
           ${entities
             .map(
-              (e, i) => `
-            <div class="entity-card" data-idx="${i}">
-              <div class="entity-head">
-                <div class="entity-title">Item ${i + 1}</div>
-                <button class="remove" data-action="remove" data-idx="${i}">Remove</button>
-              </div>
-
-              <div class="grid2">
-                <div class="picker">
-                  <div class="h">Entity</div>
-                  <div data-picker="entity" data-idx="${i}"></div>
-                  <input id="entity_id_${i}" type="text" value="${asStr(e.entity_id, "")}" placeholder="sensor.temperature" style="margin-top:8px;" />
-                </div>
-
-                <div class="picker">
-                  <div class="h">Icon</div>
-                  <div data-picker="icon" data-idx="${i}"></div>
-                  <input id="icon_${i}" type="text" value="${asStr(e.icon, "")}" placeholder="mdi:information-outline" style="margin-top:8px;" />
-                </div>
-
-                <div>
-                  <div class="h">Label</div>
-                  <input id="label_${i}" type="text" value="${asStr(e.label, "")}" placeholder="Optional label override" />
-                </div>
-
-                <div>
-                  <div class="h">Pill background</div>
-                  <div class="colorRow">
-                    <input id="bg_color_picker_${i}" type="color" value="${colorToHexOrDefault(e.bg_color, "#202020")}" />
-                    <input id="bg_color_${i}" type="text" value="${asStr(e.bg_color, "")}" placeholder="e.g. rgba(255,255,255,0.06)" />
-                  </div>
-                </div>
-
-                <div>
-                  <div class="h">Icon color</div>
-                  <div class="colorRow">
-                    <input id="icon_color_picker_${i}" type="color" value="${colorToHexOrDefault(e.icon_color, "#ffffff")}" />
-                    <input id="icon_color_${i}" type="text" value="${asStr(e.icon_color, "")}" placeholder="e.g. #FFD966" />
-                  </div>
-                </div>
-
-                <div>
-                  <div class="h">Text color</div>
-                  <div class="colorRow">
-                    <input id="text_color_picker_${i}" type="color" value="${colorToHexOrDefault(e.text_color, "#ffffff")}" />
-                    <input id="text_color_${i}" type="text" value="${asStr(e.text_color, "")}" placeholder="Overrides pill text only" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          `
+              (_, i) =>
+                `<button class="tab ${i === idx ? "active" : ""}" data-tab="${i}" type="button">${i + 1}</button>`
             )
             .join("")}
+          <button class="tab add" id="add_entity_tab" type="button">+</button>
         </div>
+
+        ${
+          !hasEntities
+            ? `<div class="small">No entities yet. Press <b>+</b> to add one.</div>`
+            : `
+              <div class="entity-card" data-idx="${idx}">
+                <div class="entity-toolbar">
+                  <div class="left">
+                    <div class="entity-title">Item ${idx + 1}</div>
+                  </div>
+                  <div class="left">
+                    <button class="btn" id="copy_entity" type="button">Copy</button>
+                    <button class="btn" id="paste_entity" type="button">Paste</button>
+                    <button class="remove" id="delete_entity" type="button">Delete</button>
+                  </div>
+                </div>
+
+                <div class="h">Entity JSON (copy/paste)</div>
+                <textarea id="entity_code" class="codebox" rows="8" spellcheck="false">${this._escapeText(
+                  this._entityToCode(current!)
+                )}</textarea>
+
+                <div class="small" style="margin:10px 0 6px;">Form fields (kept in sync)</div>
+
+                <div class="grid2">
+                  <div class="picker">
+                    <div class="h">Entity</div>
+                    <div data-picker="entity" data-idx="${idx}"></div>
+                    <input id="entity_id_${idx}" type="text" value="${asStr(current!.entity_id, "")}" placeholder="sensor.temperature" style="margin-top:8px;" />
+                  </div>
+
+                  <div class="picker">
+                    <div class="h">Icon</div>
+                    <div data-picker="icon" data-idx="${idx}"></div>
+                    <input id="icon_${idx}" type="text" value="${asStr(current!.icon, "")}" placeholder="mdi:information-outline" style="margin-top:8px;" />
+                  </div>
+
+                  <div>
+                    <div class="h">Label</div>
+                    <input id="label_${idx}" type="text" value="${asStr(current!.label, "")}" placeholder="Optional label override" />
+                  </div>
+
+                  <div>
+                    <div class="h">Pill background</div>
+                    <div class="colorRow">
+                      <input id="bg_color_picker_${idx}" type="color" value="${colorToHexOrDefault(current!.bg_color, "#202020")}" />
+                      <input id="bg_color_${idx}" type="text" value="${asStr(current!.bg_color, "")}" placeholder="e.g. rgba(255,255,255,0.06)" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="h">Icon color</div>
+                    <div class="colorRow">
+                      <input id="icon_color_picker_${idx}" type="color" value="${colorToHexOrDefault(current!.icon_color, "#ffffff")}" />
+                      <input id="icon_color_${idx}" type="text" value="${asStr(current!.icon_color, "")}" placeholder="e.g. #FFD966" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="h">Text color</div>
+                    <div class="colorRow">
+                      <input id="text_color_picker_${idx}" type="color" value="${colorToHexOrDefault(current!.text_color, "#ffffff")}" />
+                      <input id="text_color_${idx}" type="text" value="${asStr(current!.text_color, "")}" placeholder="Overrides pill text only" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `
+        }
       </div>
 
       <div class="section">
@@ -380,8 +557,9 @@ class ScrollingBannerCardEditor extends HTMLElement {
     `;
 
     this._wire();
+    this._syncPickers();
 
-    // Restore focus/selection safely (CSS.escape can be missing in some webviews)
+    // Restore focus/selection safely
     if (activeId) {
       const safeId = safeCssEscape(activeId);
       const el = this._root.querySelector(`#${safeId}`) as any;
@@ -392,8 +570,6 @@ class ScrollingBannerCardEditor extends HTMLElement {
         }
       }
     }
-
-    this._syncPickers();
   }
 
   private _wire() {
@@ -405,6 +581,7 @@ class ScrollingBannerCardEditor extends HTMLElement {
       el.addEventListener(ev, fn);
     };
 
+    // Global bindings
     on("#title", "input", (e) => this._update({ title: (e.target as HTMLInputElement).value }));
     on("#speed", "input", (e) => this._update({ speed: clamp(Number((e.target as HTMLInputElement).value), 10, 300) }));
     on("#pause_on_hover", "change", (e) => this._update({ pause_on_hover: (e.target as HTMLInputElement).checked }));
@@ -433,56 +610,77 @@ class ScrollingBannerCardEditor extends HTMLElement {
 
     on("#css", "input", (e) => this._update({ css: (e.target as HTMLTextAreaElement).value }));
 
-    on("#add_entity", "click", () => {
-      const entities = ensureArray<BannerEntity>(this._config!.entities, []);
-      entities.push({ entity_id: "" });
-      this._update({ entities });
-    });
-
-    this._root!.querySelectorAll("[data-action='remove']").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const idx = Number((btn as HTMLElement).getAttribute("data-idx"));
-        const entities = ensureArray<BannerEntity>(this._config!.entities, []);
-        entities.splice(idx, 1);
-        this._update({ entities });
+    // Tabs (delegated)
+    const tabs = this._root!.querySelector("#entity_tabs");
+    if (tabs && !(tabs as any).__wired) {
+      (tabs as any).__wired = true;
+      tabs.addEventListener("click", (ev) => {
+        const btn = (ev.target as HTMLElement).closest("button.tab") as HTMLButtonElement | null;
+        if (!btn) return;
+        const tab = btn.getAttribute("data-tab");
+        if (tab !== null) this._setActiveEntityIdx(Number(tab));
       });
+    }
+
+    // Add entity (+)
+    on("#add_entity_tab", "click", () => this._addEntityAndFocus());
+
+    // Entity toolbar + codebox
+    on("#copy_entity", "click", async () => {
+      try {
+        await this._copyActiveEntityCode();
+      } catch {
+        alert("Copy failed (clipboard permissions).");
+      }
     });
 
+    on("#paste_entity", "click", async () => {
+      try {
+        await this._applyActiveEntityCodeFromTextareaOrClipboard();
+      } catch {
+        alert("Paste failed (clipboard permissions).");
+      }
+    });
+
+    on("#delete_entity", "click", () => this._deleteActiveEntity());
+
+    // Apply JSON when changed
+    on("#entity_code", "change", () => this._applyActiveEntityCodeFromTextareaOrClipboard());
+
+    // Active entity input bindings (only bind current)
     const entities = ensureArray<BannerEntity>(this._config.entities, []);
-    entities.forEach((_, i) => {
-      const bind = (id: string, key: keyof BannerEntity) => {
-        const el = this._root!.querySelector(id) as HTMLInputElement | null;
-        if (!el) return;
-        el.addEventListener("input", () => {
-          const next = ensureArray<BannerEntity>(this._config!.entities, []).slice();
-          next[i] = { ...next[i], [key]: el.value };
-          this._update({ entities: next });
-        });
-      };
+    const idx = this._activeEntityIdx;
+    const current = entities[idx];
+    if (!current) return;
 
-      bind(`#entity_id_${i}`, "entity_id");
-      bind(`#label_${i}`, "label");
-      bind(`#icon_${i}`, "icon");
-      bind(`#bg_color_${i}`, "bg_color");
-      bind(`#icon_color_${i}`, "icon_color");
-      bind(`#text_color_${i}`, "text_color");
+    const updateEntityField = (key: keyof BannerEntity, value: string) => {
+      const next = entities.slice();
+      next[idx] = { ...next[idx], [key]: value };
+      this._update({ entities: next });
+    };
 
-      const bindPicker = (pid: string, tid: string, key: keyof BannerEntity) => {
-        const p = this._root!.querySelector(pid) as HTMLInputElement | null;
-        const t = this._root!.querySelector(tid) as HTMLInputElement | null;
-        if (!p || !t) return;
-        p.addEventListener("input", () => {
-          t.value = p.value;
-          const next = ensureArray<BannerEntity>(this._config!.entities, []).slice();
-          next[i] = { ...next[i], [key]: p.value };
-          this._update({ entities: next });
-        });
-      };
+    // Text inputs
+    on(`#entity_id_${idx}`, "input", (e) => updateEntityField("entity_id", (e.target as HTMLInputElement).value));
+    on(`#label_${idx}`, "input", (e) => updateEntityField("label", (e.target as HTMLInputElement).value));
+    on(`#icon_${idx}`, "input", (e) => updateEntityField("icon", (e.target as HTMLInputElement).value));
+    on(`#bg_color_${idx}`, "input", (e) => updateEntityField("bg_color", (e.target as HTMLInputElement).value));
+    on(`#icon_color_${idx}`, "input", (e) => updateEntityField("icon_color", (e.target as HTMLInputElement).value));
+    on(`#text_color_${idx}`, "input", (e) => updateEntityField("text_color", (e.target as HTMLInputElement).value));
 
-      bindPicker(`#bg_color_picker_${i}`, `#bg_color_${i}`, "bg_color");
-      bindPicker(`#icon_color_picker_${i}`, `#icon_color_${i}`, "icon_color");
-      bindPicker(`#text_color_picker_${i}`, `#text_color_${i}`, "text_color");
-    });
+    // Color pickers (write to text field too)
+    const bindPicker = (pickerId: string, textId: string, key: keyof BannerEntity) => {
+      const p = this._root!.querySelector(pickerId) as HTMLInputElement | null;
+      const t = this._root!.querySelector(textId) as HTMLInputElement | null;
+      if (!p || !t) return;
+      p.addEventListener("input", () => {
+        t.value = p.value;
+        updateEntityField(key, p.value);
+      });
+    };
+
+    bindPicker(`#bg_color_picker_${idx}`, `#bg_color_${idx}`, "bg_color");
+    bindPicker(`#icon_color_picker_${idx}`, `#icon_color_${idx}`, "icon_color");
+    bindPicker(`#text_color_picker_${idx}`, `#text_color_${idx}`, "text_color");
   }
 
   private _syncPickers() {
@@ -491,50 +689,56 @@ class ScrollingBannerCardEditor extends HTMLElement {
     const entities = ensureArray<BannerEntity>(this._config.entities, []);
     const hass = this._hass;
 
-    entities.forEach((e, i) => {
-      const entityHost = this._root!.querySelector(`[data-picker="entity"][data-idx="${i}"]`) as HTMLElement | null;
-      if (entityHost && entityHost.childElementCount === 0 && customElements.get("ha-entity-picker")) {
-        const picker = document.createElement("ha-entity-picker") as any;
-        picker.className = "picker";
-        if (hass) picker.hass = hass;
-        picker.value = e.entity_id || "";
-        picker.setAttribute("allow-custom-entity", "");
-        picker.addEventListener("value-changed", (ev: any) => {
-          const v = ev?.detail?.value ?? "";
-          const input = this._root!.querySelector(`#entity_id_${i}`) as HTMLInputElement;
-          input.value = v;
-          const next = ensureArray<BannerEntity>(this._config!.entities, []).slice();
-          next[i] = { ...next[i], entity_id: v };
-          this._update({ entities: next });
-        });
-        entityHost.appendChild(picker);
-      } else if (entityHost && entityHost.firstElementChild) {
-        const picker = entityHost.firstElementChild as any;
-        if (hass) picker.hass = hass;
-        picker.value = e.entity_id || "";
-      }
+    const i = this._activeEntityIdx;
+    const e = entities[i];
+    if (!e) return;
 
-      const iconHost = this._root!.querySelector(`[data-picker="icon"][data-idx="${i}"]`) as HTMLElement | null;
-      if (iconHost && iconHost.childElementCount === 0 && customElements.get("ha-icon-picker")) {
-        const picker = document.createElement("ha-icon-picker") as any;
-        picker.className = "picker";
-        if (hass) picker.hass = hass;
-        picker.value = e.icon || "";
-        picker.addEventListener("value-changed", (ev: any) => {
-          const v = ev?.detail?.value ?? "";
-          const input = this._root!.querySelector(`#icon_${i}`) as HTMLInputElement;
-          input.value = v;
-          const next = ensureArray<BannerEntity>(this._config!.entities, []).slice();
-          next[i] = { ...next[i], icon: v };
-          this._update({ entities: next });
-        });
-        iconHost.appendChild(picker);
-      } else if (iconHost && iconHost.firstElementChild) {
-        const picker = iconHost.firstElementChild as any;
-        if (hass) picker.hass = hass;
-        picker.value = e.icon || "";
-      }
-    });
+    // ENTITY PICKER
+    const entityHost = this._root.querySelector(`[data-picker="entity"][data-idx="${i}"]`) as HTMLElement | null;
+    if (entityHost && entityHost.childElementCount === 0 && customElements.get("ha-entity-picker")) {
+      const picker = document.createElement("ha-entity-picker") as any;
+      picker.className = "picker";
+      if (hass) picker.hass = hass;
+      picker.value = e.entity_id || "";
+      picker.setAttribute("allow-custom-entity", "");
+      picker.addEventListener("value-changed", (ev: any) => {
+        const v = ev?.detail?.value ?? "";
+        const input = this._root!.querySelector(`#entity_id_${i}`) as HTMLInputElement | null;
+        if (input) input.value = v;
+
+        const next = ensureArray<BannerEntity>(this._config!.entities, []).slice();
+        next[i] = { ...next[i], entity_id: v };
+        this._update({ entities: next });
+      });
+      entityHost.appendChild(picker);
+    } else if (entityHost && entityHost.firstElementChild) {
+      const picker = entityHost.firstElementChild as any;
+      if (hass) picker.hass = hass;
+      picker.value = e.entity_id || "";
+    }
+
+    // ICON PICKER
+    const iconHost = this._root.querySelector(`[data-picker="icon"][data-idx="${i}"]`) as HTMLElement | null;
+    if (iconHost && iconHost.childElementCount === 0 && customElements.get("ha-icon-picker")) {
+      const picker = document.createElement("ha-icon-picker") as any;
+      picker.className = "picker";
+      if (hass) picker.hass = hass;
+      picker.value = e.icon || "";
+      picker.addEventListener("value-changed", (ev: any) => {
+        const v = ev?.detail?.value ?? "";
+        const input = this._root!.querySelector(`#icon_${i}`) as HTMLInputElement | null;
+        if (input) input.value = v;
+
+        const next = ensureArray<BannerEntity>(this._config!.entities, []).slice();
+        next[i] = { ...next[i], icon: v };
+        this._update({ entities: next });
+      });
+      iconHost.appendChild(picker);
+    } else if (iconHost && iconHost.firstElementChild) {
+      const picker = iconHost.firstElementChild as any;
+      if (hass) picker.hass = hass;
+      picker.value = e.icon || "";
+    }
   }
 
   private _update(patch: Partial<ScrollingBannerConfig>) {
